@@ -1,0 +1,14 @@
+{
+  "name": "hecpac",
+  "version": "1.0.0",
+  "description": "Toy single bin 2DRBPP with costs and weights",
+  "main": "hecpac.js",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "keywords": [
+    "2DRBPP"
+  ],
+  "author": "Stefan Hacker",
+  "license": "MIT"
+}
