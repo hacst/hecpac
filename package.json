@@ -10,5 +10,11 @@
     "2DRBPP"
   ],
   "author": "Stefan Hacker",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jasmine": "^2.5.3",
+    "jasmine-core": "^2.5.2",
+    "karma": "^1.4.1",
+    "karma-jasmine": "^1.1.0"
+  }
 }
