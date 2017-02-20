@@ -29,6 +29,18 @@
             return items;
         };
 
+        var requestToCsv = function(request) {
+            var asRow = function(obj, elements) {
+                return elements.map(function(e) { return obj[e]; }).join(',') + "\n";
+            };
+
+            var columns = ["width", "length", "weight", "cost"];
+            var csv = columns.join(",") + "\n" +
+                    request.bin.width + "," + request.bin.length + "," + request.bin.maximumWeight + ",-\n" +
+                    request.items.map(function(i) { return asRow(i, columns); }).join("");
+            return csv;
+        };
+
         var randomBin = function() {
             return {
                 width: getRandomIntInclusive(50, 500),
@@ -37,7 +49,17 @@
             }
         };
 
+        var randomRequest = function() {
+            return {
+                items: randomItems(40),
+                bin: randomBin()
+            };
+        };
+
         var renderResponse = function(request, response) {
+            var visualizationDiv = document.getElementById("visualization");
+            visualizationDiv.innerHTML = "<h3>Response visualization:</h3>";
+
             var svg = d3.select("#visualization").append("svg")
                 .attr("width", "400px")
                 .attr("height", "400px")
@@ -80,17 +102,92 @@
                 })).join("") + "</table>";
         };
 
-        var test = function() {
-            var item = {
-                width: 10,
-                length: 10
-            };
+        var requestFromCsv = function() {
+            var file = document.getElementById('input').files[0];
+            var reader = new FileReader();
+            reader.onload = function(evt) {
+                var contents = evt.target.result.trim();
+                var parsedCSV = d3.csvParseRows(contents);
 
-            var request = {
-                items: randomItems(40),
-                bin: randomBin()
-            };
+                var headers = parsedCSV[0];
 
+                var parseItem = function(row, headers) {
+                    var item = {};
+                    headers.forEach(function(header, idx) {
+                        item[header] = parseInt(row[idx]);
+                    });
+                    return item;
+                };
+
+                var binItem = parseItem(parsedCSV[1], headers);
+                var bin = {
+                    width: binItem.width,
+                    length: binItem.length,
+                    maximumWeight: binItem.weight
+                };
+                var items = parsedCSV.slice(2).map(function(row) {
+                    return parseItem(row, headers);
+                });
+
+                request = {
+                    bin: bin,
+                    items: items
+                };
+
+                init();
+
+                var container = d3.select("body")
+                    .append("table")
+
+                    .selectAll("tr")
+                    .data(parsedCSV).enter()
+                    .append("tr")
+
+                    .selectAll("td")
+                    .data(function (d) {
+                        return d;
+                    }).enter()
+                    .append("td")
+                    .text(function (d) {
+                        return d;
+                    });
+
+            };
+            reader.readAsText(file, "UTF-8");
+        };
+
+        // Set random initial request
+        var request = randomRequest();
+
+        var init = function() {
+            var requestSummaryDiv = document.getElementById("requestSummary");
+            requestSummaryDiv.innerHTML = "<h3>Request:</h3><table class='table table-striped table-bordered'>" +
+                "<tr><td>bin max. weight</td><td>" + request.bin.maximumWeight + "</td></tr>" +
+                "<tr><td>item count</td><td>" + request.items.length + "</td></tr>" +
+                "</table>";
+
+            var visualizationDiv = document.getElementById("visualization");
+            visualizationDiv.innerHTML = "<h3>Response visualization:</h3>No response";
+
+            var responseSummaryDiv = document.getElementById("responseSummary");
+            responseSummaryDiv.innerHTML = "<h3>Response:</h3>No response";
+
+            var remainingDiv = document.getElementById("remaining");
+            remainingDiv.innerHTML = "<h3>Remaining items:</h3>No response";
+
+            var loadedDiv = document.getElementById("loaded");
+            loadedDiv.innerHTML = "<h3>Loaded items:</h3>No response";
+
+            console.log(requestToCsv(request));
+            pack();
+        };
+
+        var randomizeRequest = function() {
+            request = randomRequest();
+            init();
+        };
+
+        var pack = function() {
             var response = hecpac.pack(request);
             renderResponse(request, response);
 
@@ -101,12 +198,6 @@
 
             //var res2 = hecpac.pack(req2);
             //renderResponse(req2, res2);
-
-            var requestSummaryDiv = document.getElementById("requestSummary");
-            requestSummaryDiv.innerHTML = "<h3>Request:</h3><table class='table table-striped table-bordered'>" +
-                    "<tr><td>bin max. weight</td><td>" + request.bin.maximumWeight + "</td></tr>" +
-                    "<tr><td>item count</td><td>" + request.items.length + "</td></tr>" +
-                "</table>";
 
             var responseSummaryDiv = document.getElementById("responseSummary");
             var facts = ["packedItemsCost", "packedItemsWeight", "remainingItemsWeight","remainingItemsCost", "strategy", "timeTakenInMs"];
@@ -123,16 +214,22 @@
                 tabulateItems(response.packedItems.map(function(packedItem) { return request.items[packedItem.index]}));
         }
     </script>
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
 </head>
-<body onload="test()">
+<body onload="init()">
 <div id="requestSummary"></div>
+<div id="controls">
+    <label class="btn btn-default btn-file">
+    Load from CSV: <input type="file" id="input" onchange="requestFromCsv()" />
+    </label>
+    <button type="button" onclick="randomizeRequest()" class="btn btn-default">New random request</button>
+    <button type="button" onclick="pack()" class="btn btn-default">Re-Pack</button>
+</div>
 <div id="responseSummary"></div>
-<div id="visualization"><h3>Response visualization:</h3></div>
+<div id="visualization"></div>
 <div id="remaining"></div>
 <div id="loaded"></div>
 </body>

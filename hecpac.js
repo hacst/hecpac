@@ -39,39 +39,38 @@ hecpac = (function(){
         });
     };
 
-    var biggestAreaFirstStrategy = function(enumeratedItems) {
+    function biggestAreaFirstStrategy(enumeratedItems) {
         var result = enumeratedItems.slice();
         result.sort(function(a,b) {
             return b.item.width * b.item.length - a.item.width * a.item.length;
         });
         return result;
-
-    };
+    }
 
     var costPerArea = function(item) {
         return item.cost / (item.width * item.length);
     };
 
-    var highestCostPerAreaFirstStrategy = function(enumeratedItems) {
+    function highestCostPerAreaFirstStrategy(enumeratedItems) {
         var result = enumeratedItems.slice();
         result.sort(function(a,b) {
             return costPerArea(b.item) - costPerArea(a.item);
         });
         return result;
-    };
+    }
 
     var costPerWeight = function(item) {
         if (item.cost == 0 && item.weight == 0) return 0;
         return item.cost / item.weight;
     };
 
-    var highestCostPerWeightFirstStrategy = function(enumeratedItems) {
+    function highestCostPerWeightFirstStrategy(enumeratedItems) {
         var result = enumeratedItems.slice();
         result.sort(function(a,b) {
             return costPerWeight(b.item) - costPerWeight(a.item);
         });
         return result;
-    };
+    }
 
     var packWithStrategy = function(request, strategy) {
         var enumeratedItems = enumerate(request.items);
