@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Visualization</title>
     <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://d3js.org/d3-axis.v1.min.js"></script>
     <script src="hecpac.js"></script>
     <script>
         var getRandomIntInclusive = function(min, max) {
@@ -135,23 +136,6 @@
                 };
 
                 init();
-
-                var container = d3.select("body")
-                    .append("table")
-
-                    .selectAll("tr")
-                    .data(parsedCSV).enter()
-                    .append("tr")
-
-                    .selectAll("td")
-                    .data(function (d) {
-                        return d;
-                    }).enter()
-                    .append("td")
-                    .text(function (d) {
-                        return d;
-                    });
-
             };
             reader.readAsText(file, "UTF-8");
         };
@@ -190,15 +174,7 @@
         var pack = function() {
             var response = hecpac.pack(request);
             renderResponse(request, response);
-
-            var req2 = {
-                bin: request.bin,
-                items : response.remainingItems.map(function (i) { return request.items[i]; })
-            };
-
-            //var res2 = hecpac.pack(req2);
-            //renderResponse(req2, res2);
-
+            
             var responseSummaryDiv = document.getElementById("responseSummary");
             var facts = ["packedItemsCost", "packedItemsWeight", "remainingItemsWeight","remainingItemsCost", "strategy", "timeTakenInMs"];
             responseSummaryDiv.innerHTML = "<h3>Response:</h3><table class='table table-striped table-bordered'>" + (facts.map(function(fact) {
