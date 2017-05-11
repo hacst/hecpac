@@ -87,9 +87,11 @@ hecpac = (function(){
             packedItems: [],
             packedItemsCost: 0,
             packedItemsWeight: 0,
+            packedItemsArea: 0,
             remainingItems: [],
             remainingItemsCost: 0,
             remainingItemsWeight: 0,
+            remainingItemsArea: 0,
             strategy: strategy.name
         };
 
@@ -108,12 +110,14 @@ hecpac = (function(){
                 });
                 result.packedItemsCost += item.cost;
                 result.packedItemsWeight += item.weight;
+                result.packedItemsArea += item.width * item.length;
             } else {
                 // We couldn't place the item. As our
                 // space can only get smaller there's no use
                 // retrying to place it either.
                 result.remainingItemsCost += item.cost;
                 result.remainingItemsWeight += item.weight;
+                result.remainingItemsArea += item.width * item.length;
                 result.remainingItems.push(index);
             }
         }

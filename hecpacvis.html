@@ -147,6 +147,7 @@
             var requestSummaryDiv = document.getElementById("requestSummary");
             requestSummaryDiv.innerHTML = "<h3>Request:</h3><table class='table table-striped table-bordered'>" +
                 "<tr><td>bin max. weight</td><td>" + request.bin.maximumWeight + "</td></tr>" +
+                "<tr><td>bin area</td><td>" + (request.bin.width * request.bin.length) + "</td></tr>" +
                 "<tr><td>item count</td><td>" + request.items.length + "</td></tr>" +
                 "</table>";
 
@@ -174,9 +175,14 @@
         var pack = function() {
             var response = hecpac.pack(request);
             renderResponse(request, response);
-            
+
             var responseSummaryDiv = document.getElementById("responseSummary");
-            var facts = ["packedItemsCost", "packedItemsWeight", "remainingItemsWeight","remainingItemsCost", "strategy", "timeTakenInMs"];
+            var facts = [
+                "packedItemsCost", "packedItemsWeight", "packedItemsArea",
+                "remainingItemsWeight","remainingItemsCost", "remainingItemsArea",
+                "strategy", "timeTakenInMs"
+            ];
+
             responseSummaryDiv.innerHTML = "<h3>Response:</h3><table class='table table-striped table-bordered'>" + (facts.map(function(fact) {
                 return "<tr><td>" + fact + "</td><td>" + response[fact] + "</td>";
                 })).join("") + "</table>";
