@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Visualization</title>
+    <script src="https://d3js.org/d3-array.v1.min.js"></script>
+    <script src="https://d3js.org/d3-collection.v1.min.js"></script>
+    <script src="https://d3js.org/d3-color.v1.min.js"></script>
+    <script src="https://d3js.org/d3-format.v1.min.js"></script>
+    <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+    <script src="https://d3js.org/d3-time.v1.min.js"></script>
+    <script src="https://d3js.org/d3-time-format.v2.min.js"></script>
+    <script src="https://d3js.org/d3-scale.v1.min.js"></script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="https://d3js.org/d3-axis.v1.min.js"></script>
     <script src="hecpac.js"></script>
     <script>
         var getRandomIntInclusive = function(min, max) {
@@ -61,10 +68,12 @@
             var visualizationDiv = document.getElementById("visualization");
             visualizationDiv.innerHTML = "<h3>Response visualization:</h3>";
 
+            var margin = 50; // Margin for axis
             var svg = d3.select("#visualization").append("svg")
-                .attr("width", "400px")
-                .attr("height", "400px")
-                .attr("viewBox", "0 0 " + request.bin.width + " " + request.bin.length);
+                .attr("width", "500px")
+                .attr("height", "500px")
+                .attr("viewBox", "" + (-margin) + " " + (-margin) + " " + (request.bin.width + margin * 2) + " " + (request.bin.length + margin * 2));
+
             svg.append("rect")
                 .attr("x", "0")
                 .attr("y", "0")
@@ -75,6 +84,27 @@
                 .style("stroke", "black")
                 .append("title")
                 .text(function(d) { return "Box: " + JSON.stringify(request.bin, null, " "); });
+
+            var scaleVertical = d3.scaleLinear()
+                .domain([0, request.bin.length])
+                .range([0, request.bin.length]);
+
+
+            var axisLeft = d3.axisLeft(scaleVertical)
+                .ticks(10);
+
+            svg.append("g")
+                .call(axisLeft);
+
+            var scaleHorizontal = d3.scaleLinear()
+                .domain([0, request.bin.width])
+                .range([0, request.bin.width]);
+
+            var axisTop = d3.axisTop(scaleHorizontal)
+                .ticks(10);
+
+            svg.append("g")
+                .call(axisTop);
 
             response.packedItems.forEach(function (item) {
                svg.append("rect")
