@@ -39,6 +39,10 @@ hecpac = (function(){
         });
     };
 
+    var clone = function(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+
     function biggestAreaFirstStrategy(enumeratedItems) {
         var result = enumeratedItems.slice();
         result.sort(function(a,b) {
@@ -72,7 +76,12 @@ hecpac = (function(){
         return result;
     }
 
-    var packWithStrategy = function(request, strategy) {
+    var debug = false;
+    var setDebug = function(val) {
+        debug = val;
+    }
+
+    var packWithStrategy = function(request, strategy, observer) {
         var enumeratedItems = enumerate(request.items);
         var items = strategy(enumeratedItems);
 
@@ -95,6 +104,14 @@ hecpac = (function(){
             strategy: strategy.name
         };
 
+        var steps = [];
+        if (debug) {
+            steps.push({
+                spaces: clone(spaces),
+                result: clone(result)
+            });
+        }
+
         for (var i = 0; i < items.length; ++i) {
             var index = items[i].index;
             var item = items[i].item;
@@ -111,6 +128,13 @@ hecpac = (function(){
                 result.packedItemsCost += item.cost;
                 result.packedItemsWeight += item.weight;
                 result.packedItemsArea += item.width * item.length;
+
+                if (debug) {
+                    steps.push({
+                        spaces: clone(spaces),
+                        result: clone(result)
+                    });
+                }
             } else {
                 // We couldn't place the item. As our
                 // space can only get smaller there's no use
@@ -120,6 +144,10 @@ hecpac = (function(){
                 result.remainingItemsArea += item.width * item.length;
                 result.remainingItems.push(index);
             }
+        }
+
+        if (debug) {
+            result.steps = steps;
         }
 
         return result;
@@ -230,6 +258,7 @@ hecpac = (function(){
         _enumerate: enumerate,
         _highestCostPerAreaFirstStrategy: highestCostPerAreaFirstStrategy,
         _highestCostPerWeightFirstStrategy: highestCostPerWeightFirstStrategy,
+        setDebug : setDebug,
         pack: pack
     };
 })();

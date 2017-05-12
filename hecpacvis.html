@@ -64,14 +64,11 @@
             };
         };
 
-        var renderResponse = function(request, response) {
-            var visualizationDiv = document.getElementById("visualization");
-            visualizationDiv.innerHTML = "<h3>Response visualization:</h3>";
-
+        var addResponseSVG = function(request, response, spaces) {
             var margin = 50; // Margin for axis
             var svg = d3.select("#visualization").append("svg")
-                .attr("width", "500px")
-                .attr("height", "500px")
+                .attr("width", "600px")
+                .attr("height", "600px")
                 .attr("viewBox", "" + (-margin) + " " + (-margin) + " " + (request.bin.width + margin * 2) + " " + (request.bin.length + margin * 2));
 
             svg.append("rect")
@@ -106,6 +103,34 @@
             svg.append("g")
                 .call(axisTop);
 
+            if (spaces) {
+                svg.append("pattern")
+                    .attr("id", "freespacepattern")
+                    .attr("patternUnits", "userSpaceOnUse")
+                    .attr("width", 10)
+                    .attr("height", 10)
+                    .attr("patternTransform", "rotate(45)")
+                    .append("rect")
+                        .attr("height", 20)
+                        .attr("width", 3)
+                        .attr("fill", "green");
+
+                spaces.forEach(function (space) {
+                    svg.append("rect")
+                        .attr("x", space.x)
+                        .attr("y", space.y)
+                        .attr("width", space.width)
+                        .attr("height", space.length)
+                        .style("fill", "url(#freespacepattern)")
+                        .style("fill-opacity", 0.2)
+                        .style("vector-effect" , "non-scaling-stroke")
+                        .style("stroke", "green")
+                        .style("stroke-width", 1.5)
+                        .append("title")
+                        .text(function(d) { return "Space: " + JSON.stringify(space, null, " "); });
+                });
+            }
+
             response.packedItems.forEach(function (item) {
                svg.append("rect")
                    .attr("x", item.place.x)
@@ -113,11 +138,23 @@
                    .attr("width", item.place.width)
                    .attr("height", item.place.length)
                    .style("fill", d3.schemeCategory20[item.index % 20])
-                   .style("vector-effect" , "non-scaling-stroke")
                    .style("stroke", "black")
                    .append("title")
                    .text(function(d) { return "Item: " + JSON.stringify(request.items[item.index], null, " ") + "\nPlace: " + JSON.stringify(item.place, null, " "); });
             });
+        };
+
+        var renderResponse = function(request, response) {
+            var visualizationDiv = document.getElementById("visualization");
+            visualizationDiv.innerHTML = "<h3>Response visualization:</h3>";
+
+            if (response.steps) {
+                response.steps.forEach(function (step) {
+                    addResponseSVG(request, step.result, step.spaces);
+                });
+            }
+
+            addResponseSVG(request, response);
         };
 
         var tabulateItems = function(items) {
@@ -203,6 +240,8 @@
         };
 
         var pack = function() {
+            hecpac.setDebug(document.getElementById("showStepsCheckbox").checked);
+
             var response = hecpac.pack(request);
             renderResponse(request, response);
 
@@ -235,10 +274,11 @@
 <div id="requestSummary"></div>
 <div id="controls">
     <label class="btn btn-default btn-file">
-    Load from CSV: <input type="file" id="input" onchange="requestFromCsv()" />
+    Load from CSV <input type="file" id="input" onchange="requestFromCsv();">
     </label>
     <button type="button" onclick="randomizeRequest()" class="btn btn-default">New random request</button>
     <button type="button" onclick="pack()" class="btn btn-default">Re-Pack</button>
+    <label class="checkbox-inline"><input id="showStepsCheckbox" type="checkbox" onclick="pack()">Show steps</label>
 </div>
 <div id="responseSummary"></div>
 <div id="visualization"></div>
